@@ -10,7 +10,7 @@ public class ClientDAO {
     public void insertClient(String name, String phone) {
         String sql = "INSERT INTO clients (name, phone) VALUES (?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) { // Используем PreparedStatement
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name);
             pstmt.setString(2, phone);
             pstmt.executeUpdate();
@@ -55,7 +55,7 @@ public class ClientDAO {
 
     // SEARCH (Week 8) - Поиск по имени через ILIKE
     public void findClientByName(String keyword) {
-        String sql = "SELECT * FROM clients WHERE name ILIKE ?"; // ILIKE для поиска без учета регистра
+        String sql = "SELECT * FROM clients WHERE name ILIKE ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, "%" + keyword + "%"); // Wildcards %
