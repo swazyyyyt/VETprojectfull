@@ -3,15 +3,13 @@ package VETprojectfull.model;
 public class Vaccination extends Treatment implements Treatable {
     private String vaccineName;
 
-    public Vaccination(int treatmentId, Owner owner, Pet pet, Veterinarian veterinarian,
+    public Vaccination(int treatmentId, Client client, Pet pet, Veterinarian veterinarian,
                        String status, String vaccineName) {
-        super(treatmentId, owner, pet, veterinarian, status);
+        super(treatmentId, client, pet, veterinarian, status);
         setVaccineName(vaccineName);
     }
 
-    public String getVaccineName() {
-        return vaccineName;
-    }
+    public String getVaccineName() { return vaccineName; }
 
     public void setVaccineName(String vaccineName) {
         if (vaccineName == null || vaccineName.trim().isEmpty()) {
@@ -23,8 +21,7 @@ public class Vaccination extends Treatment implements Treatable {
     @Override
     public void completeTreatment() {
         this.status = "Completed";
-        System.out.println("Vaccination '" + vaccineName + "' completed for " + pet.getName() +
-                " by Dr. " + veterinarian.getName());
+        System.out.println("✅ Vaccination '" + vaccineName + "' completed for " + pet.getName());
     }
 
     @Override
@@ -34,17 +31,12 @@ public class Vaccination extends Treatment implements Treatable {
 
     @Override
     public void performTreatment() {
-        System.out.println("Administering vaccine: " + vaccineName + " to " + pet.getName());
+        System.out.println("💉 Administering vaccine: " + vaccineName + " to " + pet.getName());
     }
 
     @Override
     public double calculateCost() {
         return 15000; // 15,000 KZT flat rate
-    }
-
-    public boolean isAnnualVaccine() {
-        return vaccineName.toLowerCase().contains("annual") ||
-                vaccineName.toLowerCase().contains("rabies");
     }
 
     @Override

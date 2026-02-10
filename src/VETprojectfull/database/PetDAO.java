@@ -1,25 +1,28 @@
 package VETprojectfull.database;
 
+import VETprojectfull.model.Pet;
 import VETprojectfull.model.Client;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientDAO {
+public class PetDAO {
 
-    // CREATE - Insert client
-    public void insertClient(Client client) {
-        String sql = "INSERT INTO clients (name, phone) VALUES (?, ?)";
+    // CREATE - Insert pet
+    public void insertPet(Pet pet) {
+        String sql = "INSERT INTO pets (name, species, age, owner_id) VALUES (?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, client.getName());
-            statement.setString(2, client.getPhone());
+            statement.setString(1, pet.getName());
+            statement.setString(2, pet.getSpecies());
+            statement.setInt(3, pet.getAge());
+            statement.setInt(4, pet.getOwner().getOwnerId());
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("✅ Client added successfully!");
+                System.out.println("✅ Pet added successfully!");
             }
             statement.close();
         } catch (SQLException e) {
@@ -30,9 +33,10 @@ public class ClientDAO {
         }
     }
 
-    // READ - Display all clients
-    public void displayAllClients() {
-        String sql = "SELECT * FROM clients ORDER BY client_id";
+    // READ - Display all pets
+    public void displayAllPets() {
+        String sql = "SELECT p.pet_id, p.name, p.species, p.age, c.name as owner_name " +
+                "FROM pets p JOIN clients c ON p.owner_id = c.client_id ORDER BY p.pet_id";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
@@ -40,26 +44,29 @@ public class ClientDAO {
             ResultSet rs = statement.executeQuery();
 
             System.out.println("\n========================================");
-            System.out.println("          ALL CLIENTS");
+            System.out.println("          ALL PETS");
             System.out.println("========================================");
 
             int count = 0;
             while (rs.next()) {
                 count++;
-                int id = rs.getInt("client_id");
+                int id = rs.getInt("pet_id");
                 String name = rs.getString("name");
-                String phone = rs.getString("phone");
+                String species = rs.getString("species");
+                int age = rs.getInt("age");
+                String ownerName = rs.getString("owner_name");
 
-                System.out.println(count + ". " + name);
+                System.out.println(count + ". " + name + " (" + species + ")");
                 System.out.println("   ID: " + id);
-                System.out.println("   Phone: " + phone);
+                System.out.println("   Age: " + age + " years");
+                System.out.println("   Owner: " + ownerName);
                 System.out.println();
             }
 
             if (count == 0) {
-                System.out.println("No clients found.");
+                System.out.println("No pets found.");
             } else {
-                System.out.println("Total clients: " + count);
+                System.out.println("Total pets: " + count);
             }
 
             rs.close();
@@ -72,24 +79,29 @@ public class ClientDAO {
         }
     }
 
-    // READ - Get client by ID
-    public Client getClientById(int clientId) {
-        String sql = "SELECT * FROM clients WHERE client_id = ?";
+    // READ - Get pet by ID (with owner)
+    public Pet getPetById(int petId, ClientDAO clientDAO) {
+        String sql = "SELECT * FROM pets WHERE pet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, clientId);
+            statement.setInt(1, petId);
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
-                int id = rs.getInt("client_id");
                 String name = rs.getString("name");
-                String phone = rs.getString("phone");
+                String species = rs.getString("species");
+                int age = rs.getInt("age");
+                int ownerId = rs.getInt("owner_id");
+
+                Client owner = clientDAO.getClientById(ownerId);
 
                 rs.close();
                 statement.close();
-                return new Client(id, name, phone);
+
+                Pet pet = new Pet(name, species, age, owner);
+                return pet;
             }
 
             rs.close();
@@ -104,27 +116,26 @@ public class ClientDAO {
         return null;
     }
 
-    // UPDATE - Update client phone
-    public boolean updateClient(Client client) {
-        String sql = "UPDATE clients SET name = ?, phone = ? WHERE client_id = ?";
+    // UPDATE - Update pet
+    public boolean updatePet(int petId, String name, String species, int age) {
+        String sql = "UPDATE pets SET name = ?, species = ?, age = ? WHERE pet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         if (connection == null) return false;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, client.getName());
-            statement.setString(2, client.getPhone());
-            statement.setInt(3, client.getOwnerId());
+            statement.setString(1, name);
+            statement.setString(2, species);
+            statement.setInt(3, age);
+            statement.setInt(4, petId);
 
             int rowsUpdated = statement.executeUpdate();
             statement.close();
 
             if (rowsUpdated > 0) {
-                System.out.println("✅ Client updated: " + client.getName());
+                System.out.println("✅ Pet updated: " + name);
                 return true;
-            } else {
-                System.out.println("⚠️ No client found with ID: " + client.getOwnerId());
             }
         } catch (SQLException e) {
             System.out.println("❌ Update failed!");
@@ -136,25 +147,23 @@ public class ClientDAO {
         return false;
     }
 
-    // DELETE - Delete client
-    public boolean deleteClient(int clientId) {
-        String sql = "DELETE FROM clients WHERE client_id = ?";
+    // DELETE - Delete pet
+    public boolean deletePet(int petId) {
+        String sql = "DELETE FROM pets WHERE pet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         if (connection == null) return false;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, clientId);
+            statement.setInt(1, petId);
 
             int rowsDeleted = statement.executeUpdate();
             statement.close();
 
             if (rowsDeleted > 0) {
-                System.out.println("✅ Client deleted (ID: " + clientId + ")");
+                System.out.println("✅ Pet deleted (ID: " + petId + ")");
                 return true;
-            } else {
-                System.out.println("⚠️ No client found with ID: " + clientId);
             }
         } catch (SQLException e) {
             System.out.println("❌ Delete failed!");
@@ -166,13 +175,13 @@ public class ClientDAO {
         return false;
     }
 
-    // SEARCH - Search by name (ILIKE)
-    public List<Client> searchByName(String name) {
-        List<Client> clients = new ArrayList<>();
-        String sql = "SELECT * FROM clients WHERE name ILIKE ? ORDER BY name";
+    // SEARCH - Search by name
+    public List<Pet> searchByName(String name, ClientDAO clientDAO) {
+        List<Pet> pets = new ArrayList<>();
+        String sql = "SELECT * FROM pets WHERE name ILIKE ? ORDER BY name";
         Connection connection = DatabaseConnection.getConnection();
 
-        if (connection == null) return clients;
+        if (connection == null) return pets;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -180,42 +189,15 @@ public class ClientDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                int id = rs.getInt("client_id");
-                String clientName = rs.getString("name");
-                String phone = rs.getString("phone");
+                String petName = rs.getString("name");
+                String species = rs.getString("species");
+                int age = rs.getInt("age");
+                int ownerId = rs.getInt("owner_id");
 
-                clients.add(new Client(id, clientName, phone));
-            }
-
-            rs.close();
-            statement.close();
-            System.out.println("✅ Found " + clients.size() + " client(s)");
-        } catch (SQLException e) {
-            System.out.println("❌ Search failed!");
-            e.printStackTrace();
-        } finally {
-            DatabaseConnection.closeConnection(connection);
-        }
-
-        return clients;
-    }
-
-    // Get all clients as List
-    public List<Client> getAllClients() {
-        List<Client> clients = new ArrayList<>();
-        String sql = "SELECT * FROM clients ORDER BY name";
-        Connection connection = DatabaseConnection.getConnection();
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            ResultSet rs = statement.executeQuery();
-
-            while (rs.next()) {
-                int id = rs.getInt("client_id");
-                String name = rs.getString("name");
-                String phone = rs.getString("phone");
-
-                clients.add(new Client(id, name, phone));
+                Client owner = clientDAO.getClientById(ownerId);
+                if (owner != null) {
+                    pets.add(new Pet(petName, species, age, owner));
+                }
             }
 
             rs.close();
@@ -226,6 +208,6 @@ public class ClientDAO {
             DatabaseConnection.closeConnection(connection);
         }
 
-        return clients;
+        return pets;
     }
 }

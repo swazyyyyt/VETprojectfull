@@ -7,17 +7,8 @@ public class Veterinarian {
     private int experience;
     private String phone;
 
-    // Константы для лимитов
-    private static final int MAX_NAME_LENGTH = 100;
-    private static final int MAX_SPECIALIZATION_LENGTH = 50;
-    private static final int MIN_EXPERIENCE = 0;
-    private static final int MAX_EXPERIENCE = 50;
-    private static final int MIN_PHONE_LENGTH = 10;
-    private static final int MAX_PHONE_LENGTH = 15;
-
-    // Constructor
     public Veterinarian(int vetId, String name, String specialization, int experience, String phone) {
-        setVetId(vetId);
+        this.vetId = vetId;
         setName(name);
         setSpecialization(specialization);
         setExperience(experience);
@@ -25,61 +16,40 @@ public class Veterinarian {
     }
 
     // Getters
-    public int getVetId() {
-        return vetId;
-    }
+    public int getVetId() { return vetId; }
+    public String getName() { return name; }
+    public String getSpecialization() { return specialization; }
+    public int getExperience() { return experience; }
+    public String getPhone() { return phone; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getSpecialization() {
-        return specialization;
-    }
-
-    public int getExperience() {
-        return experience;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    // Setters с расширенной валидацией
+    // Setters with validation
     public void setVetId(int vetId) {
-        if (vetId > 0) {
-            this.vetId = vetId;
-        } else {
-            throw new IllegalArgumentException("Vet ID must be positive!");
+        if (vetId < 0) {
+            throw new IllegalArgumentException("Vet ID cannot be negative!");
         }
+        this.vetId = vetId;
     }
 
     public void setName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be empty!");
         }
-        if (name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException("Name cannot exceed " + MAX_NAME_LENGTH + " characters!");
-        }
-        this.name = name.trim();
+        this.name = name;
     }
 
     public void setSpecialization(String specialization) {
         if (specialization == null || specialization.trim().isEmpty()) {
             throw new IllegalArgumentException("Specialization cannot be empty!");
         }
-        if (specialization.length() > MAX_SPECIALIZATION_LENGTH) {
-            throw new IllegalArgumentException("Specialization cannot exceed " + MAX_SPECIALIZATION_LENGTH + " characters!");
-        }
-        this.specialization = specialization.trim();
+        this.specialization = specialization;
     }
 
     public void setExperience(int experience) {
-        if (experience < MIN_EXPERIENCE) {
+        if (experience < 0) {
             throw new IllegalArgumentException("Experience cannot be negative!");
         }
-        if (experience > MAX_EXPERIENCE) {
-            throw new IllegalArgumentException("Experience cannot exceed " + MAX_EXPERIENCE + " years!");
+        if (experience > 50) {
+            throw new IllegalArgumentException("Experience cannot exceed 50 years!");
         }
         this.experience = experience;
     }
@@ -88,7 +58,7 @@ public class Veterinarian {
         if (phone == null || phone.trim().isEmpty()) {
             throw new IllegalArgumentException("Phone cannot be empty!");
         }
-        this.phone = phone.trim();
+        this.phone = phone;
     }
 
     // Methods
@@ -102,13 +72,8 @@ public class Veterinarian {
 
     @Override
     public String toString() {
-        return "Veterinarian{" +
-                "vetId=" + vetId +
-                ", name='" + name + '\'' +
-                ", specialization='" + specialization + '\'' +
-                ", experience=" + experience +
-                ", phone='" + phone + '\'' +
-                ", experienced=" + (isExperienced() ? "Yes" : "No") +
-                '}';
+        return "Veterinarian{id=" + vetId + ", name='" + name + "', spec='" + specialization +
+                "', exp=" + experience + ", phone='" + phone + "'}";
     }
 }
+

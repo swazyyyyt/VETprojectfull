@@ -1,25 +1,27 @@
 package VETprojectfull.database;
 
-import VETprojectfull.model.Client;
+import VETprojectfull.model.Veterinarian;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientDAO {
+public class VeterinarianDAO {
 
-    // CREATE - Insert client
-    public void insertClient(Client client) {
-        String sql = "INSERT INTO clients (name, phone) VALUES (?, ?)";
+    // CREATE - Insert veterinarian
+    public void insertVeterinarian(Veterinarian vet) {
+        String sql = "INSERT INTO veterinarians (name, specialization, experience, phone) VALUES (?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, client.getName());
-            statement.setString(2, client.getPhone());
+            statement.setString(1, vet.getName());
+            statement.setString(2, vet.getSpecialization());
+            statement.setInt(3, vet.getExperience());
+            statement.setString(4, vet.getPhone());
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("✅ Client added successfully!");
+                System.out.println("✅ Veterinarian added successfully!");
             }
             statement.close();
         } catch (SQLException e) {
@@ -30,9 +32,9 @@ public class ClientDAO {
         }
     }
 
-    // READ - Display all clients
-    public void displayAllClients() {
-        String sql = "SELECT * FROM clients ORDER BY client_id";
+    // READ - Display all veterinarians
+    public void displayAllVeterinarians() {
+        String sql = "SELECT * FROM veterinarians ORDER BY vet_id";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
@@ -40,26 +42,33 @@ public class ClientDAO {
             ResultSet rs = statement.executeQuery();
 
             System.out.println("\n========================================");
-            System.out.println("          ALL CLIENTS");
+            System.out.println("       ALL VETERINARIANS");
             System.out.println("========================================");
 
             int count = 0;
             while (rs.next()) {
                 count++;
-                int id = rs.getInt("client_id");
+                int id = rs.getInt("vet_id");
                 String name = rs.getString("name");
+                String spec = rs.getString("specialization");
+                int exp = rs.getInt("experience");
                 String phone = rs.getString("phone");
 
-                System.out.println(count + ". " + name);
+                System.out.println(count + ". Dr. " + name);
                 System.out.println("   ID: " + id);
+                System.out.println("   Specialization: " + spec);
+                System.out.println("   Experience: " + exp + " years");
                 System.out.println("   Phone: " + phone);
+                if (exp >= 5) {
+                    System.out.println("   🏥 Experienced Vet");
+                }
                 System.out.println();
             }
 
             if (count == 0) {
-                System.out.println("No clients found.");
+                System.out.println("No veterinarians found.");
             } else {
-                System.out.println("Total clients: " + count);
+                System.out.println("Total veterinarians: " + count);
             }
 
             rs.close();
@@ -72,24 +81,26 @@ public class ClientDAO {
         }
     }
 
-    // READ - Get client by ID
-    public Client getClientById(int clientId) {
-        String sql = "SELECT * FROM clients WHERE client_id = ?";
+    // READ - Get veterinarian by ID
+    public Veterinarian getVeterinarianById(int vetId) {
+        String sql = "SELECT * FROM veterinarians WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, clientId);
+            statement.setInt(1, vetId);
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
-                int id = rs.getInt("client_id");
+                int id = rs.getInt("vet_id");
                 String name = rs.getString("name");
+                String spec = rs.getString("specialization");
+                int exp = rs.getInt("experience");
                 String phone = rs.getString("phone");
 
                 rs.close();
                 statement.close();
-                return new Client(id, name, phone);
+                return new Veterinarian(id, name, spec, exp, phone);
             }
 
             rs.close();
@@ -104,27 +115,27 @@ public class ClientDAO {
         return null;
     }
 
-    // UPDATE - Update client phone
-    public boolean updateClient(Client client) {
-        String sql = "UPDATE clients SET name = ?, phone = ? WHERE client_id = ?";
+    // UPDATE - Update veterinarian
+    public boolean updateVeterinarian(Veterinarian vet) {
+        String sql = "UPDATE veterinarians SET name = ?, specialization = ?, experience = ?, phone = ? WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         if (connection == null) return false;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, client.getName());
-            statement.setString(2, client.getPhone());
-            statement.setInt(3, client.getOwnerId());
+            statement.setString(1, vet.getName());
+            statement.setString(2, vet.getSpecialization());
+            statement.setInt(3, vet.getExperience());
+            statement.setString(4, vet.getPhone());
+            statement.setInt(5, vet.getVetId());
 
             int rowsUpdated = statement.executeUpdate();
             statement.close();
 
             if (rowsUpdated > 0) {
-                System.out.println("✅ Client updated: " + client.getName());
+                System.out.println("✅ Veterinarian updated: " + vet.getName());
                 return true;
-            } else {
-                System.out.println("⚠️ No client found with ID: " + client.getOwnerId());
             }
         } catch (SQLException e) {
             System.out.println("❌ Update failed!");
@@ -136,25 +147,23 @@ public class ClientDAO {
         return false;
     }
 
-    // DELETE - Delete client
-    public boolean deleteClient(int clientId) {
-        String sql = "DELETE FROM clients WHERE client_id = ?";
+    // DELETE - Delete veterinarian
+    public boolean deleteVeterinarian(int vetId) {
+        String sql = "DELETE FROM veterinarians WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
 
         if (connection == null) return false;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, clientId);
+            statement.setInt(1, vetId);
 
             int rowsDeleted = statement.executeUpdate();
             statement.close();
 
             if (rowsDeleted > 0) {
-                System.out.println("✅ Client deleted (ID: " + clientId + ")");
+                System.out.println("✅ Veterinarian deleted (ID: " + vetId + ")");
                 return true;
-            } else {
-                System.out.println("⚠️ No client found with ID: " + clientId);
             }
         } catch (SQLException e) {
             System.out.println("❌ Delete failed!");
@@ -166,13 +175,13 @@ public class ClientDAO {
         return false;
     }
 
-    // SEARCH - Search by name (ILIKE)
-    public List<Client> searchByName(String name) {
-        List<Client> clients = new ArrayList<>();
-        String sql = "SELECT * FROM clients WHERE name ILIKE ? ORDER BY name";
+    // SEARCH - Search by name
+    public List<Veterinarian> searchByName(String name) {
+        List<Veterinarian> vets = new ArrayList<>();
+        String sql = "SELECT * FROM veterinarians WHERE name ILIKE ? ORDER BY name";
         Connection connection = DatabaseConnection.getConnection();
 
-        if (connection == null) return clients;
+        if (connection == null) return vets;
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -180,30 +189,30 @@ public class ClientDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                int id = rs.getInt("client_id");
-                String clientName = rs.getString("name");
+                int id = rs.getInt("vet_id");
+                String vetName = rs.getString("name");
+                String spec = rs.getString("specialization");
+                int exp = rs.getInt("experience");
                 String phone = rs.getString("phone");
 
-                clients.add(new Client(id, clientName, phone));
+                vets.add(new Veterinarian(id, vetName, spec, exp, phone));
             }
 
             rs.close();
             statement.close();
-            System.out.println("✅ Found " + clients.size() + " client(s)");
         } catch (SQLException e) {
-            System.out.println("❌ Search failed!");
             e.printStackTrace();
         } finally {
             DatabaseConnection.closeConnection(connection);
         }
 
-        return clients;
+        return vets;
     }
 
-    // Get all clients as List
-    public List<Client> getAllClients() {
-        List<Client> clients = new ArrayList<>();
-        String sql = "SELECT * FROM clients ORDER BY name";
+    // Get all veterinarians as List
+    public List<Veterinarian> getAllVeterinarians() {
+        List<Veterinarian> vets = new ArrayList<>();
+        String sql = "SELECT * FROM veterinarians ORDER BY name";
         Connection connection = DatabaseConnection.getConnection();
 
         try {
@@ -211,11 +220,13 @@ public class ClientDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                int id = rs.getInt("client_id");
+                int id = rs.getInt("vet_id");
                 String name = rs.getString("name");
+                String spec = rs.getString("specialization");
+                int exp = rs.getInt("experience");
                 String phone = rs.getString("phone");
 
-                clients.add(new Client(id, name, phone));
+                vets.add(new Veterinarian(id, name, spec, exp, phone));
             }
 
             rs.close();
@@ -226,6 +237,6 @@ public class ClientDAO {
             DatabaseConnection.closeConnection(connection);
         }
 
-        return clients;
+        return vets;
     }
 }

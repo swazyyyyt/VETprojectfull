@@ -1,279 +1,426 @@
 package VETprojectfull.menu;
 
+import VETprojectfull.database.*;
 import VETprojectfull.model.*;
 import VETprojectfull.exception.InvalidInputException;
-import java.util.ArrayList;
+
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 public class ClinicMenu implements Menu {
-    private ArrayList<Owner> owners;
-    private ArrayList<Veterinarian> veterinarians;
-    private ArrayList<Treatment> treatments;
-    private Scanner scanner;
+    private final ClientDAO clientDAO;
+    private final PetDAO petDAO;
+    private final VeterinarianDAO veterinarianDAO;
+    private final Scanner scanner;
 
     public ClinicMenu() {
-        this.owners = new ArrayList<>();
-        this.veterinarians = new ArrayList<>();
-        this.treatments = new ArrayList<>();
+        this.clientDAO = new ClientDAO();
+        this.petDAO = new PetDAO();
+        this.veterinarianDAO = new VeterinarianDAO();
         this.scanner = new Scanner(System.in);
-        loadTestData();
-    }
-
-    private void loadTestData() {
-        // Создаем владельцев
-        Owner owner1 = new Owner(1, "Dmitriy Rochshupkin", "03-03-03");
-        Owner owner2 = new Owner(2, "Manas Agatayev", "10-10-10");
-        Owner owner3 = new Owner(3, "Aidos Lazzatbekov", "16-16-16");
-
-        owners.add(owner1);
-        owners.add(owner2);
-        owners.add(owner3);
-
-        // Создаем питомцев (они автоматически добавляются в список владельца внутри конструктора)
-        Pet dog1 = new Pet("Mishka", "dog", 2, owner1);
-        Pet cat1 = new Pet("Karamel", "cat", 5, owner2);
-        Pet parrot1 = new Pet("Sanyok", "parrot", 2, owner3);
-
-        // Создаем ветеринаров
-        Veterinarian vet1 = new Veterinarian(1, "Smith Johnson", "dog", 10, "00-00-01");
-        Veterinarian vet2 = new Veterinarian(2, "Lionel Messi", "dog", 3, "00-00-02");
-        Veterinarian vet3 = new Veterinarian(3, "Timur Iskakov", "cat", 16, "00-00-03");
-
-        veterinarians.add(vet1);
-        veterinarians.add(vet2);
-        veterinarians.add(vet3);
-
-        // Создаем процедуры
-        Treatment treatment1 = new Surgery(1, owner1, dog1, vet1, "Started", 3);
-        Treatment treatment2 = new Vaccination(2, owner2, cat1, vet2, "Completed", "superVaccine");
-
-        treatments.add(treatment1);
-        treatments.add(treatment2);
     }
 
     @Override
     public void displayMenu() {
-        System.out.println("\n=====================================");
-        System.out.println("VETERINARIAN CLINIC MANAGEMENT SYSTEM");
-        System.out.println("=====================================");
-        System.out.println("1. Add Owner");
-        System.out.println("2. View Owners");
-        System.out.println("3. Add Pets");
-        System.out.println("4. View Pets");
-        System.out.println("5. Add Veterinarians");
-        System.out.println("6. View Veterinarians");
-        System.out.println("7. Add Treatments");
-        System.out.println("8. View Treatments");
-        System.out.println("9. Polymorphism demo");
-        System.out.println("0. Exit");
-        System.out.println("=====================================");
-        System.out.print("Enter your choice: >>> ");
+        System.out.println("\n========================================");
+        System.out.println("  VET CLINIC MANAGEMENT SYSTEM");
+        System.out.println("========================================");
+        System.out.println("CLIENTS (Owners):");
+        System.out.println("1. Add Client           2. View All Clients");
+        System.out.println("3. Update Client        4. Delete Client");
+        System.out.println("\nPETS:");
+        System.out.println("5. Add Pet              6. View All Pets");
+        System.out.println("7. Update Pet           8. Delete Pet");
+        System.out.println("\nVETERINARIANS:");
+        System.out.println("9. Add Veterinarian     10. View All Vets");
+        System.out.println("11. Update Vet          12. Delete Vet");
+        System.out.println("\nSEARCH:");
+        System.out.println("13. Search Client       14. Search Pet");
+        System.out.println("15. Search Vet");
+        System.out.println("\n0. Exit");
+        System.out.println("========================================");
+        System.out.print("Enter your choice >>> ");
     }
 
     @Override
     public void run() {
         boolean running = true;
         while (running) {
-            displayMenu();
             try {
-                if (!scanner.hasNextInt()) {
-                    System.out.println("❌ Please enter a number!");
-                    scanner.next(); // очистка буфера
-                    continue;
-                }
+                displayMenu();
                 int choice = scanner.nextInt();
-                scanner.nextLine(); // очистка буфера
+                scanner.nextLine();
 
                 switch (choice) {
-                    case 1: createOwner(); break;
-                    case 2: viewOwners(); break;
-                    case 3: createPets(); break;
-                    case 4: viewPets(); break;
-                    case 5: createVeterinarians(); break;
-                    case 6: viewVeterinarians(); break;
-                    case 7: createTreatments(); break;
-                    case 8: viewTreatments(); break;
-                    case 9: demonstratePolymorphism(); break;
-                    case 0:
-                        System.out.println("\nThank you for using this program!");
+                    case 1 -> addClient();
+                    case 2 -> viewAllClients();
+                    case 3 -> updateClient();
+                    case 4 -> deleteClient();
+                    case 5 -> addPet();
+                    case 6 -> viewAllPets();
+                    case 7 -> updatePet();
+                    case 8 -> deletePet();
+                    case 9 -> addVeterinarian();
+                    case 10 -> viewAllVeterinarians();
+                    case 11 -> updateVeterinarian();
+                    case 12 -> deleteVeterinarian();
+                    case 13 -> searchClient();
+                    case 14 -> searchPet();
+                    case 15 -> searchVet();
+                    case 0 -> {
+                        System.out.println("\nThank you for using VET Clinic System! Goodbye! 🐾");
                         running = false;
-                        break;
-                    default:
-                        System.out.println("Wrong choice!");
+                    }
+                    default -> System.out.println("❌ Invalid choice! Please try again.");
+                }
+
+                if (running) {
+                    System.out.println("\nPress Enter to continue...");
+                    scanner.nextLine();
                 }
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-
-            if (running) {
-                System.out.print("\nPress Enter to continue...");
+                System.out.println("❌ Error: " + e.getMessage());
                 scanner.nextLine();
             }
         }
+        scanner.close();
     }
 
-    private void createOwner() {
-        System.out.println("\n--- ADD OWNER ---");
-        System.out.print("Enter Owner's name: >>> ");
-        String name = scanner.nextLine();
-        System.out.print("Enter Owner's phone number: >>> ");
-        String phone = scanner.nextLine();
+    // ==================== CLIENT OPERATIONS ====================
 
-        Owner owner = new Owner(owners.size() + 1, name, phone);
-        owners.add(owner);
-        System.out.println("✅ New Owner created successfully!");
-    }
+    private void addClient() {
+        try {
+            System.out.println("\n--- ADD CLIENT (Owner) ---");
+            System.out.print("Enter name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter phone: ");
+            String phone = scanner.nextLine();
 
-    private void viewOwners() {
-        System.out.println("\n--- ALL OWNERS ---");
-        if (owners.isEmpty()) {
-            System.out.println("No owners found.");
-            return;
-        }
-        for (Owner o : owners) {
-            System.out.println(o.toString());
+            Client client = new Client(0, name, phone);
+            clientDAO.insertClient(client);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
         }
     }
 
-    private void createPets() {
+    private void viewAllClients() {
+        clientDAO.displayAllClients();
+    }
+
+    private void updateClient() {
+        try {
+            System.out.print("Enter Client ID to update: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            Client existing = clientDAO.getClientById(id);
+            if (existing == null) {
+                System.out.println("❌ No client found with ID: " + id);
+                return;
+            }
+
+            System.out.println("\nCurrent: " + existing.getName() + ", Phone: " + existing.getPhone());
+
+            System.out.print("New Name [" + existing.getName() + "]: ");
+            String name = scanner.nextLine();
+            if (name.trim().isEmpty()) {
+                name = existing.getName();
+            }
+
+            System.out.print("New Phone [" + existing.getPhone() + "]: ");
+            String phone = scanner.nextLine();
+            if (phone.trim().isEmpty()) {
+                phone = existing.getPhone();
+            }
+
+            Client updated = new Client(id, name, phone);
+            clientDAO.updateClient(updated);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
+        }
+    }
+
+    private void deleteClient() {
+        try {
+            System.out.print("Enter Client ID to delete: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            Client client = clientDAO.getClientById(id);
+            if (client == null) {
+                System.out.println("❌ No client found with ID: " + id);
+                return;
+            }
+
+            System.out.println("\nDelete: " + client.getName() + " (ID: " + id + ")");
+            System.out.print("⚠️ Are you sure? (yes/no): ");
+            String confirm = scanner.nextLine();
+
+            if (confirm.equalsIgnoreCase("yes")) {
+                clientDAO.deleteClient(id);
+            } else {
+                System.out.println("Deletion cancelled.");
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
+        }
+    }
+
+    // ==================== PET OPERATIONS ====================
+
+    private void addPet() {
         try {
             System.out.println("\n--- ADD PET ---");
-            System.out.print("Enter Pet's name: >>> ");
+            System.out.print("Enter pet name: ");
             String name = scanner.nextLine();
-            System.out.print("Enter Pet's species: >>> ");
+            System.out.print("Enter species (Dog/Cat/Bird/etc): ");
             String species = scanner.nextLine();
-            System.out.print("Enter Pet's age: >>> ");
+            System.out.print("Enter age: ");
             int age = scanner.nextInt();
             scanner.nextLine();
-            System.out.print("Enter Pet's owner name: >>> ");
-            String ownerName = scanner.nextLine();
+            System.out.print("Enter owner/client ID: ");
+            int ownerId = scanner.nextInt();
+            scanner.nextLine();
 
-            Owner owner = findOwnerByName(ownerName);
+            Client owner = clientDAO.getClientById(ownerId);
             if (owner == null) {
-                throw new InvalidInputException("Owner not found: " + ownerName);
+                System.out.println("❌ Owner not found with ID: " + ownerId);
+                return;
             }
 
             Pet pet = new Pet(name, species, age, owner);
-            System.out.println("✅ New Pet created successfully for " + owner.getName());
-        } catch (InvalidInputException e) {
-            System.out.println("❌ " + e.getMessage());
+            petDAO.insertPet(pet);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
         }
     }
 
-    private void viewPets() {
-        System.out.println("\n--- ALL PETS ---");
-        boolean found = false;
-        for (Owner o : owners) {
-            // ВАЖНО: Убедитесь, что в классе Owner есть метод getPets()
-            for (Pet p : o.getPets()) {
-                System.out.println(p.toString() + " | Owner: " + o.getName());
-                found = true;
-            }
-        }
-        if (!found) {
-            System.out.println("No pets found.");
-        }
+    private void viewAllPets() {
+        petDAO.displayAllPets();
     }
 
-    private void createVeterinarians() {
-        System.out.println("\n--- ADD VETERINARIAN ---");
-        System.out.print("Enter Veterinarian's name: >>> ");
-        String name = scanner.nextLine();
-        System.out.print("Enter Veterinarian's specialization: >>> ");
-        String spec = scanner.nextLine();
-        System.out.print("Enter Experience (years): >>> ");
-        int exp = scanner.nextInt();
-        scanner.nextLine();
-        System.out.print("Enter Phone: >>> ");
-        String phone = scanner.nextLine();
-
-        Veterinarian vet = new Veterinarian(veterinarians.size() + 1, name, spec, exp, phone);
-        veterinarians.add(vet);
-        System.out.println("✅ Veterinarian added!");
-    }
-
-    private void viewVeterinarians() {
-        System.out.println("\n--- ALL VETERINARIANS ---");
-        for (Veterinarian v : veterinarians) {
-            System.out.println(v.toString());
-        }
-    }
-
-    private void createTreatments() {
+    private void updatePet() {
         try {
-            System.out.println("\n--- ADD TREATMENT ---");
-            System.out.print("Owner name: >>> ");
-            String ownerName = scanner.nextLine();
-            Owner owner = findOwnerByName(ownerName);
-            if (owner == null) throw new InvalidInputException("Owner not found!");
+            System.out.print("Enter Pet ID to update: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
 
-            System.out.print("Vet name: >>> ");
-            String vetName = scanner.nextLine();
-            Veterinarian vet = findVetByName(vetName);
-            if (vet == null) throw new InvalidInputException("Vet not found!");
+            System.out.print("New name: ");
+            String name = scanner.nextLine();
+            System.out.print("New species: ");
+            String species = scanner.nextLine();
+            System.out.print("New age: ");
+            int age = scanner.nextInt();
+            scanner.nextLine();
 
-            System.out.print("Pet name: >>> ");
-            String petName = scanner.nextLine();
-            Pet pet = findPetByName(owner, petName);
-            if (pet == null) throw new InvalidInputException("Pet not found!");
+            petDAO.updatePet(id, name, species, age);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
+        }
+    }
 
-            System.out.print("Type (Vaccination/Surgery): >>> ");
-            String type = scanner.nextLine();
+    private void deletePet() {
+        try {
+            System.out.print("Enter Pet ID to delete: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
 
-            if (type.equalsIgnoreCase("Vaccination")) {
-                System.out.print("Vaccine name: >>> ");
-                String vaccine = scanner.nextLine();
-                treatments.add(new Vaccination(treatments.size() + 1, owner, pet, vet, "Scheduled", vaccine));
-            } else if (type.equalsIgnoreCase("Surgery")) {
-                System.out.print("Difficulty (1-5): >>> ");
-                int diff = scanner.nextInt(); scanner.nextLine();
-                treatments.add(new Surgery(treatments.size() + 1, owner, pet, vet, "Scheduled", diff));
+            System.out.print("⚠️ Are you sure? (yes/no): ");
+            String confirm = scanner.nextLine();
+
+            if (confirm.equalsIgnoreCase("yes")) {
+                petDAO.deletePet(id);
+            } else {
+                System.out.println("Deletion cancelled.");
             }
-            System.out.println("✅ Treatment created!");
-        } catch (InvalidInputException e) {
-            System.out.println("❌ " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
         }
     }
 
-    private void viewTreatments() {
-        System.out.println("\n--- ALL TREATMENTS ---");
-        for (Treatment t : treatments) {
-            System.out.println(t.toString());
-            // Проверка подклассов для вывода специфичных полей
-            if (t instanceof Vaccination) {
-                System.out.println("   [Type: Vaccination, Vaccine: " + ((Vaccination) t).getVaccineName() + "]");
-            } else if (t instanceof Surgery) {
-                System.out.println("   [Type: Surgery, Difficulty: " + ((Surgery) t).getDifficulty() + "]");
+    // ==================== VETERINARIAN OPERATIONS ====================
+
+    private void addVeterinarian() {
+        try {
+            System.out.println("\n--- ADD VETERINARIAN ---");
+            System.out.print("Enter name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter specialization: ");
+            String spec = scanner.nextLine();
+            System.out.print("Enter experience (years): ");
+            int exp = scanner.nextInt();
+            scanner.nextLine();
+            System.out.print("Enter phone: ");
+            String phone = scanner.nextLine();
+
+            Veterinarian vet = new Veterinarian(0, name, spec, exp, phone);
+            veterinarianDAO.insertVeterinarian(vet);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
+        }
+    }
+
+    private void viewAllVeterinarians(){
+        veterinarianDAO.displayAllVeterinarians();
+    }
+
+    private void updateVeterinarian() {
+        try {
+            System.out.print("Enter Vet ID to update: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            Veterinarian existing = veterinarianDAO.getVeterinarianById(id);
+            if (existing == null) {
+                System.out.println("❌ No veterinarian found with ID: " + id);
+                return;
             }
+
+            System.out.println("\nCurrent: " + existing.getName());
+
+            System.out.print("New Name [" + existing.getName() + "]: ");
+            String name = scanner.nextLine();
+            if (name.trim().isEmpty()) {
+                name = existing.getName();
+            }
+
+            System.out.print("New Specialization [" + existing.getSpecialization() + "]: ");
+            String spec = scanner.nextLine();
+            if (spec.trim().isEmpty()) {
+                spec = existing.getSpecialization();
+            }
+
+            System.out.print("New Experience [" + existing.getExperience() + "]: ");
+            String expInput = scanner.nextLine();
+            int exp = expInput.trim().isEmpty() ? existing.getExperience() : Integer.parseInt(expInput);
+
+            System.out.print("New Phone [" + existing.getPhone() + "]: ");
+            String phone = scanner.nextLine();
+            if (phone.trim().isEmpty()) {
+                phone = existing.getPhone();
+            }
+
+            Veterinarian updated = new Veterinarian(id, name, spec, exp, phone);
+            veterinarianDAO.updateVeterinarian(updated);
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
         }
     }
 
-    private void demonstratePolymorphism() {
-        System.out.println("\n--- POLYMORPHISM DEMO ---");
-        for (Treatment t : treatments) {
-            t.completeTreatment(); // Вызов переопределенного метода
+    private void deleteVeterinarian() {
+        try {
+            System.out.print("Enter Vet ID to delete: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+
+            Veterinarian vet = veterinarianDAO.getVeterinarianById(id);
+            if (vet == null) {
+                System.out.println("❌ No veterinarian found with ID: " + id);
+                return;
+            }
+
+            System.out.println("\nDelete: Dr. " + vet.getName());
+            System.out.print("⚠️ Are you sure? (yes/no): ");
+            String confirm = scanner.nextLine();
+
+            if (confirm.equalsIgnoreCase("yes")) {
+                veterinarianDAO.deleteVeterinarian(id);
+            } else {
+                System.out.println("Deletion cancelled.");
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            scanner.nextLine();
         }
     }
 
-    // Вспомогательные методы поиска
-    private Owner findOwnerByName(String name) {
-        for (Owner o : owners) {
-            if (o.getName().equalsIgnoreCase(name)) return o;
+    // ==================== SEARCH OPERATIONS ====================
+
+    private void searchClient() {
+        try {
+            System.out.print("Enter client name to search: ");
+            String name = scanner.nextLine();
+
+            List<Client> results = clientDAO.searchByName(name);
+
+            System.out.println("\n========== SEARCH RESULTS ==========");
+
+            if (results.isEmpty()) {
+                System.out.println("No clients found with name: " + name);
+            } else {
+                for (int i = 0; i < results.size(); i++) {
+                    Client c = results.get(i);
+                    System.out.println((i + 1) + ". " + c.getName());
+                    System.out.println("   ID: " + c.getOwnerId());
+                    System.out.println("   Phone: " + c.getPhone());
+                    System.out.println();
+                }
+                System.out.println("Total found: " + results.size());
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-        return null;
     }
 
-    private Veterinarian findVetByName(String name) {
-        for (Veterinarian v : veterinarians) {
-            if (v.getName().equalsIgnoreCase(name)) return v;
+    private void searchPet() {
+        try {
+            System.out.print("Enter pet name to search: ");
+            String name = scanner.nextLine();
+
+            List<Pet> results = petDAO.searchByName(name, clientDAO);
+
+            System.out.println("\n========== SEARCH RESULTS ==========");
+
+            if (results.isEmpty()) {
+                System.out.println("No pets found with name: " + name);
+            } else {
+                for (int i = 0; i < results.size(); i++) {
+                    Pet p = results.get(i);
+                    System.out.println((i + 1) + ". " + p.getName() + " (" + p.getSpecies() + ")");
+                    System.out.println("   Age: " + p.getAge());
+                    System.out.println("   Owner: " + p.getOwner().getName());
+                    System.out.println();
+                }
+                System.out.println("Total found: " + results.size());
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-        return null;
     }
 
-    private Pet findPetByName(Owner owner, String name) {
-        for (Pet p : owner.getPets()) {
-            if (p.getName().equalsIgnoreCase(name)) return p;
+    private void searchVet() {
+        try {
+            System.out.print("Enter veterinarian name to search: ");
+            String name = scanner.nextLine();
+
+            List<Veterinarian> results = veterinarianDAO.searchByName(name);
+
+            System.out.println("\n========== SEARCH RESULTS ==========");
+
+            if (results.isEmpty()) {
+                System.out.println("No veterinarians found with name: " + name);
+            } else {
+                for (int i = 0; i < results.size(); i++) {
+                    Veterinarian v = results.get(i);
+                    System.out.println((i + 1) + ". Dr. " + v.getName());
+                    System.out.println("   ID: " + v.getVetId());
+                    System.out.println("   Specialization: " + v.getSpecialization());
+                    System.out.println("   Experience: " + v.getExperience() + " years");
+                    System.out.println();
+                }
+                System.out.println("Total found: " + results.size());
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-        return null;
     }
 }
