@@ -7,7 +7,6 @@ public class Appointment {
     private String ownerName;
     private String reason;
 
-    // Конструктор для создания объекта (Week 7)
     public Appointment(int id, String petName, String ownerName, String reason) {
         this.id = id;
         this.petName = petName;
@@ -15,7 +14,6 @@ public class Appointment {
         this.reason = reason;
     }
 
-    // Геттеры и сеттеры для доступа к данным
     public int getId() { return id; }
     public String getPetName() { return petName; }
     public String getOwnerName() { return ownerName; }

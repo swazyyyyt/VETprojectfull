@@ -7,7 +7,7 @@ import java.util.List;
 
 public class VeterinarianDAO {
 
-    // CREATE - Insert veterinarian
+
     public void insertVeterinarian(Veterinarian vet) {
         String sql = "INSERT INTO veterinarians (name, specialization, experience, phone) VALUES (?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getConnection();
@@ -32,7 +32,7 @@ public class VeterinarianDAO {
         }
     }
 
-    // READ - Display all veterinarians
+
     public void displayAllVeterinarians() {
         String sql = "SELECT * FROM veterinarians ORDER BY vet_id";
         Connection connection = DatabaseConnection.getConnection();
@@ -81,7 +81,7 @@ public class VeterinarianDAO {
         }
     }
 
-    // READ - Get veterinarian by ID
+
     public Veterinarian getVeterinarianById(int vetId) {
         String sql = "SELECT * FROM veterinarians WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
@@ -115,7 +115,7 @@ public class VeterinarianDAO {
         return null;
     }
 
-    // UPDATE - Update veterinarian
+
     public boolean updateVeterinarian(Veterinarian vet) {
         String sql = "UPDATE veterinarians SET name = ?, specialization = ?, experience = ?, phone = ? WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
@@ -147,7 +147,7 @@ public class VeterinarianDAO {
         return false;
     }
 
-    // DELETE - Delete veterinarian
+
     public boolean deleteVeterinarian(int vetId) {
         String sql = "DELETE FROM veterinarians WHERE vet_id = ?";
         Connection connection = DatabaseConnection.getConnection();
@@ -175,7 +175,7 @@ public class VeterinarianDAO {
         return false;
     }
 
-    // SEARCH - Search by name
+
     public List<Veterinarian> searchByName(String name) {
         List<Veterinarian> vets = new ArrayList<>();
         String sql = "SELECT * FROM veterinarians WHERE name ILIKE ? ORDER BY name";
@@ -209,7 +209,7 @@ public class VeterinarianDAO {
         return vets;
     }
 
-    // Get all veterinarians as List
+
     public List<Veterinarian> getAllVeterinarians() {
         List<Veterinarian> vets = new ArrayList<>();
         String sql = "SELECT * FROM veterinarians ORDER BY name";
